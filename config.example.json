@@ -1,0 +1,92 @@
+{
+  "comment_1": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ DISCORD BOT CREDENTIALS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+  "comment_1_note": "Get these from Discord Developer Portal (https://discord.com/developers)",
+  
+  "discord_token": "YOUR_DISCORD_BOT_TOKEN",
+  "discord_token_note": "⚠️  KEEP THIS SECRET! Never share this token with anyone!",
+  
+  "client_id": "YOUR_CLIENT_ID",
+  "client_id_note": "Found in Discord Developer Portal > Your App > General Information",
+  
+  "guild_id": "YOUR_GUILD_ID",
+  "guild_id_note": "Your Discord server ID (Right-click server > Copy Server ID)",
+
+  "comment_2": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ CHANNEL & CATEGORY SETTINGS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+  "comment_2_note": "Right-click channels/categories and select 'Copy ID' (enable Developer Mode first)",
+  
+  "ticket_category_id": "YOUR_TICKET_CATEGORY_ID",
+  "ticket_category_id_note": "Category where NEW/OPEN tickets will be created",
+  
+  "closed_ticket_category_id": "YOUR_CLOSED_TICKET_CATEGORY_ID",
+  "closed_ticket_category_id_note": "Category where CLOSED tickets will be moved to",
+  
+  "log_channel_id": "YOUR_LOG_CHANNEL_ID",
+  "log_channel_id_note": "Channel where TicketFlow will send logs and reports",
+
+  "comment_3": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ROLE SETTINGS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+  "comment_3_note": "Right-click roles in Server Settings and select 'Copy Role ID'",
+  
+  "admin_role_id": "YOUR_ADMIN_ROLE_ID",
+  "admin_role_id_note": "Full control over tickets (claim, close, delete, manage users)",
+  
+  "support_team_role_id": "YOUR_SUPPORT_TEAM_ROLE_ID",
+  "support_team_role_id_note": "Support team role (will be mentioned in new tickets)",
+
+  "comment_4": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ AUTO-CLOSE SETTINGS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+  
+  "auto_close_enabled": true,
+  "auto_close_enabled_note": "Set to false to disable auto-close feature",
+  
+  "auto_close_days": 7,
+  "auto_close_days_note": "Days of inactivity before auto-closing ticket (users warned 24h before)",
+
+  "comment_5": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ TICKET LIMITS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+  
+  "max_tickets_per_user": 5,
+  "max_tickets_per_user_note": "Maximum open tickets per user (prevents spam)",
+
+  "comment_6": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ TICKET SETUP PANEL APPEARANCE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+  "comment_6_note": "Customize the appearance of the ticket creation panel",
+  
+  "ticket_embed": {
+    "title": "🎫 TicketFlow Support",
+    "title_note": "Main title of the ticket panel",
+    
+    "description": "Thank you for contacting our support team. Please describe your issue in detail and we'll get back to you as soon as possible.",
+    "description_note": "Description text shown in the panel",
+    
+    "color": "#0099ff",
+    "color_note": "Hex color code (examples: #0099ff blue, #00aa00 green, #ff0000 red)"
+  },
+
+  "comment_7": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ TICKET CATEGORY OPTIONS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+  "comment_7_note": "These options appear in the dropdown menu when users create a ticket",
+  
+  "ticket_options": [
+    {
+      "label": "General Support",
+      "description": "For general questions and support.",
+      "value": "general_support",
+      "emoji": "❓"
+    },
+    {
+      "label": "Report a Bug",
+      "description": "Report a bug or issue with the bot.",
+      "value": "bug_report",
+      "emoji": "🐛"
+    },
+    {
+      "label": "Feature Request",
+      "description": "Suggest a new feature or improvement.",
+      "value": "feature_request",
+      "emoji": "💡"
+    },
+    {
+      "label": "Other",
+      "description": "For any other inquiries.",
+      "value": "other",
+      "emoji": "📄"
+    }
+  ],
+  "ticket_options_note": "You can add, remove, or modify these options as needed"
+}

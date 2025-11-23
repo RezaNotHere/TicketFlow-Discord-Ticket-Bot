@@ -1,0 +1,30 @@
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ DEPENDENCIES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+/node_modules
+package-lock.json
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ CONFIGURATION (SENSITIVE DATA) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+config.json
+.env
+.env.local
+.env.*.local
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ LOGS & CACHE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+npm-debug.log
+npm-debug.log*
+*.log
+logs/
+*.pid
+*.pid.lock
+.DS_Store
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ EDITOR & IDE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ OS SPECIFIC ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Thumbs.db
+.DS_Store

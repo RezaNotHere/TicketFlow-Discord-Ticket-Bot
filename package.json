@@ -1,0 +1,21 @@
+{
+  "name": "ticketflow",
+  "version": "1.0.0",
+  "description": "TicketFlow - An advanced ticket management bot for Discord servers. Built with Discord.js v14 and Node.js. Manage support tickets efficiently with customizable categories, auto-close system, transcripts, and comprehensive logging.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/voice": "^0.19.0",
+    "@google/generative-ai": "^0.24.1",
+    "@snazzah/davey": "^0.1.7",
+    "discord-html-transcripts": "^3.2.0",
+    "discord.js": "^14.24.0",
+    "distube": "^5.0.7",
+    "dotenv": "^17.2.3"
+  }
+}
