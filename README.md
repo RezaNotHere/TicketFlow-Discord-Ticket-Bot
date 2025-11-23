@@ -27,7 +27,7 @@ A powerful and highly configurable Discord ticket bot built with Discord.js v14.
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/RezaNotHere/TicketFlow---Discord-Ticket-Bot.git
+git clone https://github.com/RezaNotHere/TicketFlow-Discord-Ticket-Bot.git
 cd TicketAli
 npm install
 ```
@@ -326,7 +326,7 @@ All logs will include timestamps, user information, and relevant context for com
 
 ### 1️⃣ کلون و نصب
 ```bash
-git clone https://github.com/RezaNotHere/TicketFlow---Discord-Ticket-Bot.git
+git clone https://github.com/RezaNotHere/TicketFlow-Discord-Ticket-Bot.git
 cd TicketAli
 npm install
 ```
