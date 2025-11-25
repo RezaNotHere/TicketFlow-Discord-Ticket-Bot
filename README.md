@@ -72,11 +72,12 @@ The `config.json` file controls all bot settings:
 ### 🎯 Channels & Categories
 ```json
 {
-  "ticket_category_id": "WHERE_NEW_TICKETS_APPEAR",
   "closed_ticket_category_id": "WHERE_CLOSED_TICKETS_GO",
   "log_channel_id": "WHERE_LOGS_ARE_SENT"
 }
 ```
+
+> **Note**: The bot now automatically creates categories for each ticket type (e.g., "🐛-Bug Report") when needed.
 
 ### 👥 Roles
 ```json
@@ -120,9 +121,46 @@ The `config.json` file controls all bot settings:
       "label": "General Support",
       "description": "General questions",
       "value": "general_support",
-      "emoji": "❓"
+      "emoji": "❓",
+      "requiresReason": false
+    },
+    {
+      "label": "Bug Report",
+      "description": "Report a bug",
+      "value": "bug_report",
+      "emoji": "🐛",
+      "requiresReason": true
+    },
+    {
+      "label": "Feature Request",
+      "description": "Suggest a feature",
+      "value": "feature_request",
+      "emoji": "💡",
+      "requiresReason": true
+    },
+    {
+      "label": "Other",
+      "description": "Other inquiries",
+      "value": "other",
+      "emoji": "📄",
+      "requiresReason": true
     }
   ]
+}
+```
+
+### 🔍 Ticket Reason Requirements
+You can configure whether a ticket type requires a detailed reason from the user:
+- `requiresReason`: (boolean) If `true`, users will be prompted to provide a detailed reason when creating this type of ticket. If `false`, the ticket will be created immediately without additional input.
+
+Example configuration for a ticket type that requires a reason:
+```json
+{
+  "label": "Bug Report",
+  "description": "Report a bug",
+  "value": "bug_report",
+  "emoji": "🐛",
+  "requiresReason": true
 }
 ```
 
@@ -306,7 +344,58 @@ All logs will include timestamps, user information, and relevant context for com
 - 👨‍💼 **مدیریت ادمین** - کنترل کامل بر روی تیکت‌ها
 - 📊 **سیستم لاگ پیشرفته** - تمام رویدادها در کانال لاگ
 - ⏱️ **بستن خودکار** - بستن خودکار تیکت‌های فعال نیست
-- 🎯 **انواع تیکت** - تعریف انواع تیکت سفارشی
+- 🎯### 🎭 انواع تیکت‌ها
+
+#### تنظیمات پیش‌فرض
+```json
+{
+  "ticket_options": [
+    {
+      "label": "پشتیبانی عمومی",
+      "description": "سوالات عمومی",
+      "value": "general_support",
+      "emoji": "❓",
+      "requiresReason": false
+    },
+    {
+      "label": "گزارش باگ",
+      "description": "گزارش مشکل فنی",
+      "value": "bug_report",
+      "emoji": "🐛",
+      "requiresReason": true
+    },
+    {
+      "label": "پیشنهاد قابلیت",
+      "description": "پیشنهاد قابلیت جدید",
+      "value": "feature_request",
+      "emoji": "💡",
+      "requiresReason": true
+    },
+    {
+      "label": "متفرقه",
+      "description": "سایر درخواست‌ها",
+      "value": "other",
+      "emoji": "📄",
+      "requiresReason": true
+    }
+  ]
+}
+```
+
+### 🔍 تنظیمات نیاز به توضیح برای تیکت
+شما می‌توانید مشخص کنید که برای هر نوع تیکت، آیا کاربر باید توضیحی ارائه دهد یا خیر:
+- `requiresReason`: (true/false) اگر `true` باشد، از کاربر خواسته می‌شود توضیحی برای تیکت خود ارائه دهد. اگر `false` باشد، تیکت بدون درخواست توضیحات بیشتر ایجاد می‌شود.
+
+مثال تنظیم برای تیکتی که نیاز به توضیح دارد:
+```json
+{
+  "label": "گزارش باگ",
+  "description": "گزارش مشکل فنی",
+  "value": "bug_report",
+  "emoji": "🐛",
+  "requiresReason": true
+}
+``` - تعریف انواع تیکت سفارشی
 - 📋 **رونوشت‌های تیکت** - ذخیره گفتگوهای تیکت
 - 👥 **مدیریت کاربر** - افزودن/حذف کاربران از تیکت‌ها
 - 🛡️ **کنترل نقش** - سیستم مبتنی بر نقش‌ها

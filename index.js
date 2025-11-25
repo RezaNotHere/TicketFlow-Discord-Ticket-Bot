@@ -154,16 +154,24 @@ client.once(Events.ClientReady, async (readyClient) => {
         if (interaction.isStringSelectMenu()) {
             if (interaction.customId === 'create_ticket_menu') {
                 const selectedValue = interaction.values[0];
-                if (selectedValue === 'Other') {
+                const selectedOption = config.ticket_options.find(opt => opt.value === selectedValue);
+                
+                if (selectedOption && selectedOption.requiresReason) {
                     const modal = new ModalBuilder()
-                        .setCustomId('other_reason_modal')
-                        .setTitle('Reason for creating a ticket');
-                    const reasonInput = new TextInputBuilder()
-                        .setCustomId('ticket_reason_input')
-                        .setLabel('Please briefly write your reason:')
-                        .setStyle(TextInputStyle.Paragraph)
-                        .setRequired(true);
-                    modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+                        .setCustomId(`ticket_reason_modal_${selectedValue}`)
+                        .setTitle(`📝 ${selectedOption.label}`)
+                        .addComponents(
+                            new ActionRowBuilder().addComponents(
+                                new TextInputBuilder()
+                                    .setCustomId('ticket_reason_input')
+                                    .setLabel(`Please describe your ${selectedOption.label.toLowerCase()} in detail`)
+                                    .setStyle(TextInputStyle.Paragraph)
+                                    .setMinLength(10)
+                                    .setMaxLength(1000)
+                                    .setPlaceholder(`Please provide details about your ${selectedOption.label.toLowerCase()}...`)
+                                    .setRequired(true)
+                            )
+                        );
                     await interaction.showModal(modal);
                 } else {
                     await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
@@ -175,11 +183,12 @@ client.once(Events.ClientReady, async (readyClient) => {
 
         // Modal submission
         if (interaction.isModalSubmit()) {
-            // Modal for "Other" reason
-            if (interaction.customId === 'other_reason_modal') {
+            // Handle ticket reason modals
+            if (interaction.customId.startsWith('ticket_reason_modal_')) {
                 await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+                const ticketType = interaction.customId.replace('ticket_reason_modal_', '');
                 const reason = interaction.fields.getTextInputValue('ticket_reason_input');
-                await createTicketChannel(interaction, 'other', reason);
+                await createTicketChannel(interaction, ticketType, reason);
             }
 
             // Modal for "Add User"
@@ -643,7 +652,6 @@ async function createTicketChannel(interaction, type, reason = null) {
     const user = interaction.user;
     
     const adminRoleId = config.admin_role_id;
-    const templateCategoryId = config.ticket_category_id;
 
     if (!adminRoleId) {
         console.error('Error: admin_role_id is not set in config.json.');
@@ -657,7 +665,7 @@ async function createTicketChannel(interaction, type, reason = null) {
         ch.type === ChannelType.GuildText &&
         ch.topic &&
         ch.topic.includes(`ID: ${user.id}`) &&
-        (ticketCategoryManager.isTicketCategory(ch.parent) || ch.parentId === templateCategoryId)
+        ticketCategoryManager.isTicketCategory(ch.parent)
     );
     if (userTicketChannels.size >= ticketLimit) {
         const limitEmbed = new EmbedBuilder()
@@ -681,7 +689,32 @@ async function createTicketChannel(interaction, type, reason = null) {
     // Create new channel
     let category;
     try {
-        category = await ticketCategoryManager.getOrCreateTicketCategory(guild, type, templateCategoryId);
+        // Find the selected ticket option to get the emoji
+        const selectedOption = config.ticket_options.find(opt => opt.value === type);
+        const emoji = selectedOption?.emoji || '';
+        
+        category = await ticketCategoryManager.getOrCreateTicketCategory(guild, type, emoji);
+        
+        // Add admin role permissions to the category
+        if (adminRoleId) {
+            await category.permissionOverwrites.edit(adminRoleId, {
+                ViewChannel: true,
+                SendMessages: true,
+                ReadMessageHistory: true,
+                AttachFiles: true,
+                ManageChannels: true
+            });
+        }
+        
+        // Add support team role permissions if configured
+        if (config.support_team_role_id) {
+            await category.permissionOverwrites.edit(config.support_team_role_id, {
+                ViewChannel: true,
+                SendMessages: true,
+                ReadMessageHistory: true,
+                AttachFiles: true
+            });
+        }
     } catch (error) {
         console.error('Error ensuring ticket category:', error);
         await interaction.editReply({ content: 'System error: Failed to create category for this ticket type.' });
@@ -759,7 +792,7 @@ async function createTicketChannel(interaction, type, reason = null) {
         await interaction.editReply({ content: `Your ticket has been successfully created in channel ${channel}.` });
         
         // Log ticket creation
-        await logger.ticketCreated(readyClient, user, type, channel.name, reason);
+        await logger.ticketCreated(interaction.client, user, type, channel.name, reason);
         
         setTimeout(async() =>
              interaction.deleteReply(),
@@ -768,7 +801,7 @@ async function createTicketChannel(interaction, type, reason = null) {
 
     } catch (error) {
         console.error('Error creating ticket channel:', error);
-        await logger.error(readyClient, 'Ticket Creation Error', error.message, `User: ${user.tag}`);
+        await logger.error(interaction.client, 'Ticket Creation Error', error.message, `User: ${user.tag}`);
         await interaction.editReply({ content: 'An error occurred while creating the ticket channel.' });
     }
 }

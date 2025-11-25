@@ -1,8 +1,7 @@
 // ticketCategoryManager.js - Manage ticket categories
 const { ChannelType } = require('discord.js');
 
-// Ticket category prefix
-const CATEGORY_PREFIX = '🎫-';
+// Ticket category prefix (removed as we'll use emoji from config)
 
 // Normalize type label - convert ticket type name to standard format
 function normalizeTypeLabel(type) {
@@ -27,16 +26,16 @@ function normalizeTypeLabel(type) {
 }
 
 // Get category name - create category name based on ticket type
-function getCategoryName(type) {
-    return `${CATEGORY_PREFIX}${normalizeTypeLabel(type)}`;
+function getCategoryName(type, emoji = '') {
+    const emojiPrefix = emoji ? `${emoji}-` : '';
+    return `${emojiPrefix}${normalizeTypeLabel(type)}`;
 }
 
 // Check if a category is a ticket category - identify ticket categories
 function isTicketCategory(category) {
     return Boolean(category)
         && category.type === ChannelType.GuildCategory
-        && typeof category.name === 'string'
-        && category.name.startsWith(CATEGORY_PREFIX);
+        && typeof category.name === 'string';
 }
 
 // Find ticket categories - search for all existing ticket categories
@@ -56,8 +55,8 @@ function getTicketCategoryIds(guild) {
 }
 
 // Get or create ticket category
-async function getOrCreateTicketCategory(guild, type, templateCategoryId) {
-    const categoryName = getCategoryName(type);
+async function getOrCreateTicketCategory(guild, type, emoji = '') {
+    const categoryName = getCategoryName(type, emoji);
 
     // Find existing category
     let category = guild.channels.cache.find(channel =>
@@ -75,17 +74,21 @@ async function getOrCreateTicketCategory(guild, type, templateCategoryId) {
         reason: `Automatic category for ticket type: ${normalizeTypeLabel(type)}`
     };
 
-    // Copy permissions from template category
-    if (templateCategoryId) {
-        const templateCategory = guild.channels.cache.get(templateCategoryId);
-        if (templateCategory && templateCategory.type === ChannelType.GuildCategory) {
-            options.permissionOverwrites = templateCategory.permissionOverwrites.cache.map(overwrite => ({
-                id: overwrite.id,
-                allow: overwrite.allow.bitfield,
-                deny: overwrite.deny.bitfield
-            }));
-        }
-    }
+    // Set default permissions for the category
+    options.permissionOverwrites = [
+        {
+            id: guild.id, // @everyone
+            deny: [PermissionsBitField.Flags.ViewChannel],
+        },
+        {
+            id: guild.client.user.id, // Bot
+            allow: [
+                PermissionsBitField.Flags.ViewChannel,
+                PermissionsBitField.Flags.ManageChannels,
+                PermissionsBitField.Flags.ManageRoles,
+            ],
+        },
+    ];
 
     // Create new category
     category = await guild.channels.create(options);

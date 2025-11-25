@@ -14,14 +14,13 @@
   "comment_2": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ CHANNEL & CATEGORY SETTINGS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
   "comment_2_note": "Right-click channels/categories and select 'Copy ID' (enable Developer Mode first)",
   
-  "ticket_category_id": "YOUR_TICKET_CATEGORY_ID",
-  "ticket_category_id_note": "Category where NEW/OPEN tickets will be created",
-  
   "closed_ticket_category_id": "YOUR_CLOSED_TICKET_CATEGORY_ID",
-  "closed_ticket_category_id_note": "Category where CLOSED tickets will be moved to",
+  "closed_ticket_category_id_note": "Category where CLOSED tickets will be moved to (right-click category > Copy ID)",
   
   "log_channel_id": "YOUR_LOG_CHANNEL_ID",
-  "log_channel_id_note": "Channel where TicketFlow will send logs and reports",
+  "log_channel_id_note": "Channel where TicketFlow will send logs and reports (right-click channel > Copy ID)",
+  
+  "comment_2_note2": "Note: New ticket categories are created automatically based on ticket types",
 
   "comment_3": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ROLE SETTINGS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
   "comment_3_note": "Right-click roles in Server Settings and select 'Copy Role ID'",
@@ -45,6 +44,7 @@
   "max_tickets_per_user": 5,
   "max_tickets_per_user_note": "Maximum open tickets per user (prevents spam)",
 
+  
   "comment_6": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ TICKET SETUP PANEL APPEARANCE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
   "comment_6_note": "Customize the appearance of the ticket creation panel",
   
@@ -61,32 +61,37 @@
 
   "comment_7": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ TICKET CATEGORY OPTIONS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
   "comment_7_note": "These options appear in the dropdown menu when users create a ticket",
-  
   "ticket_options": [
     {
       "label": "General Support",
       "description": "For general questions and support.",
       "value": "general_support",
-      "emoji": "❓"
+      "emoji": "❓",
+      "requiresReason": false
     },
     {
       "label": "Report a Bug",
       "description": "Report a bug or issue with the bot.",
       "value": "bug_report",
-      "emoji": "🐛"
+      "emoji": "🐛",
+      "requiresReason": true
     },
     {
       "label": "Feature Request",
       "description": "Suggest a new feature or improvement.",
       "value": "feature_request",
-      "emoji": "💡"
+      "emoji": "💡",
+      "requiresReason": true
     },
     {
       "label": "Other",
       "description": "For any other inquiries.",
       "value": "other",
-      "emoji": "📄"
+      "emoji": "📄",
+      "requiresReason": true
     }
   ],
+  "comment_7_note2": "Note: The emoji will be used in the category name (e.g., '🐛-Bug Report')",
+  "comment_7_note3": "requiresReason: If true, users will be asked to provide more details when creating a ticket",
   "ticket_options_note": "You can add, remove, or modify these options as needed"
 }
