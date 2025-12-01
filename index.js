@@ -11,10 +11,31 @@ const discordTranscripts = require('discord-html-transcripts');
 const autoClose = require('./autoClose'); // Import autoClose module
 const ticketCategoryManager = require('./ticketCategoryManager');
 const Logger = require('./logger'); // Import Logger
+const SecurityManager = require('./security'); // Import SecurityManager
+const InputValidator = require('./inputValidator'); // Import InputValidator
+const ErrorHandler = require('./errorHandler'); // Import ErrorHandler
 const config = require('./config.json');
 
 // Initialize logger
 const logger = new Logger(config.log_channel_id);
+
+// Initialize security manager
+const security = new SecurityManager(config);
+
+// Initialize error handler
+const errorHandler = new ErrorHandler(logger, security);
+
+// Validate configuration on startup
+const configValidation = InputValidator.validateConfig(config);
+if (!configValidation.valid) {
+    console.error('❌ Configuration validation failed:');
+    configValidation.errors.forEach(error => console.error(`  - ${error}`));
+    process.exit(1);
+}
+
+// Setup error handlers
+errorHandler.setupUnhandledRejectionHandler(client);
+errorHandler.setupUncaughtExceptionHandler(client);
 
 const client = new Client({
     intents: [
@@ -95,16 +116,27 @@ client.once(Events.ClientReady, async (readyClient) => {
     updateStatus(); // Initial execution
     setInterval(updateStatus, 5000); // Change status every 5 seconds
 
-    // Message creation event in channel
+    // Message creation event in channel - optimized version
     client.on(Events.MessageCreate, async message => {
         if (message.author.bot) return;
         
         const channel = message.channel;
-        if (
-            channel.parentId === config.closed_ticket_category_id ||
-            ticketCategoryManager.isTicketCategory(channel.parent) ||
-            channel.parentId === config.ticket_category_id
-        ) {
+        
+        // Quick channel type check first
+        const isTicketChannel = channel.parentId === config.closed_ticket_category_id ||
+                               ticketCategoryManager.isTicketCategory(channel.parent) ||
+                               channel.parentId === config.ticket_category_id;
+        
+        if (isTicketChannel) {
+            // Only do security checks for ticket channels
+            const contentCheck = security.detectSuspiciousContent(message.content);
+            if (contentCheck.suspicious) {
+                await security.logSecurityEvent(client, 'Suspicious Content', 
+                    `User: ${message.author.tag}\nChannel: ${message.channel.name}\nSuspicious score: ${contentCheck.score}`);
+                // You can choose to delete the message or take other action
+                return;
+            }
+            
             await autoClose.updateLastMessageTimestamp(channel);
         }
     });
@@ -113,13 +145,12 @@ client.once(Events.ClientReady, async (readyClient) => {
     setInterval(() => autoClose.checkInactiveTickets(client), 60 * 60 * 1000);
     autoClose.checkInactiveTickets(client); // Immediate execution on startup
 
+    // Clean up rate limits periodically
+    setInterval(() => security.cleanupRateLimits(), 5 * 60 * 1000); // Every 5 minutes
+
     // Helper function to check admin role
     function isSupportAdmin(interaction) {
-        if (!config.admin_role_id) {
-            console.error('admin_role_id is not set in config.json');
-            return false;
-        }
-        return interaction.member.roles.cache.has(config.admin_role_id);
+        return security.hasAdminPermission(interaction.member);
     }
 
     // Interaction listener
@@ -188,7 +219,14 @@ client.once(Events.ClientReady, async (readyClient) => {
                 await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
                 const ticketType = interaction.customId.replace('ticket_reason_modal_', '');
                 const reason = interaction.fields.getTextInputValue('ticket_reason_input');
-                await createTicketChannel(interaction, ticketType, reason);
+                
+                // Validate and sanitize reason
+                const reasonValidation = InputValidator.validateTicketReason(reason);
+                if (!reasonValidation.valid) {
+                    return interaction.editReply({ content: `❌ ${reasonValidation.error}` });
+                }
+                
+                await createTicketChannel(interaction, ticketType, reasonValidation.value);
             }
 
             // Modal for "Add User"
@@ -198,7 +236,14 @@ client.once(Events.ClientReady, async (readyClient) => {
                 }
                 await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
                 const userId = interaction.fields.getTextInputValue('user_id_input');
-                const member = await interaction.guild.members.fetch(userId).catch(() => null);
+                
+                // Validate user ID
+                const userIdValidation = InputValidator.validateUserId(userId);
+                if (!userIdValidation.valid) {
+                    return interaction.editReply({ content: `❌ ${userIdValidation.error}` });
+                }
+                
+                const member = await interaction.guild.members.fetch(userIdValidation.value).catch(() => null);
 
                 if (!member) {
                     return interaction.editReply({ content: 'User with this ID not found in the server.' });
@@ -228,7 +273,14 @@ client.once(Events.ClientReady, async (readyClient) => {
                 }
                 await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
                 const userId = interaction.fields.getTextInputValue('user_id_input');
-                const member = await interaction.guild.members.fetch(userId).catch(() => null);
+                
+                // Validate user ID
+                const userIdValidation = InputValidator.validateUserId(userId);
+                if (!userIdValidation.valid) {
+                    return interaction.editReply({ content: `❌ ${userIdValidation.error}` });
+                }
+                
+                const member = await interaction.guild.members.fetch(userIdValidation.value).catch(() => null);
 
                 if (!member) {
                     return interaction.editReply({ content: 'User with this ID not found in the server.' });
@@ -651,11 +703,14 @@ async function createTicketChannel(interaction, type, reason = null) {
     const guild = interaction.guild;
     const user = interaction.user;
     
-    const adminRoleId = config.admin_role_id;
-
-    if (!adminRoleId) {
-        console.error('Error: admin_role_id is not set in config.json.');
-        await interaction.editReply({ content: 'System error: Bot is not configured correctly.' });
+    // Security validation for ticket creation
+    const securityCheck = security.validateTicketCreation(user, guild);
+    if (!securityCheck.valid) {
+        const errorEmbed = new EmbedBuilder()
+            .setTitle('❌ Security Check Failed')
+            .setDescription(securityCheck.issues.join('\n'))
+            .setColor(Colors.Red);
+        await interaction.editReply({ embeds: [errorEmbed], flags: [MessageFlags.Ephemeral] });
         return;
     }
 
@@ -675,7 +730,7 @@ async function createTicketChannel(interaction, type, reason = null) {
         await interaction.editReply({ embeds: [limitEmbed], flags: [MessageFlags.Ephemeral] });
         
         // Log ticket limit reached
-        await logger.ticketLimitReached(readyClient, user, ticketLimit);
+        await logger.ticketLimitReached(client, user, ticketLimit);
         return;
     }
 

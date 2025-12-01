@@ -2,8 +2,11 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, PermissionsBitField, ChannelType, Colors, MessageFlags } = require('discord.js');
 const config = require('../config.json');
 const Logger = require('../logger');
+const SecurityManager = require('../security');
+const InputValidator = require('../inputValidator');
 
 const logger = new Logger(config.log_channel_id);
+const security = new SecurityManager(config);
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -19,7 +22,29 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
+        // Security check - only admins can use this
+        if (!security.hasAdminPermission(interaction.member)) {
+            return interaction.editReply({ content: '❌ Only administrators can use this command.' });
+        }
+
+        // Rate limiting check
+        if (!security.checkRateLimit(interaction.user.id, 'setup_command', 2, 300000)) {
+            return interaction.editReply({ content: '❌ You are using this command too frequently. Please wait.' });
+        }
+
         const channel = interaction.options.getChannel('channel');
+        
+        // Validate channel
+        const channelValidation = InputValidator.validateChannelId(channel.id);
+        if (!channelValidation.valid) {
+            return interaction.editReply({ content: `❌ ${channelValidation.error}` });
+        }
+
+        // Validate channel permissions
+        const permissionCheck = security.validateChannelPermissions(channel, interaction.member);
+        if (!permissionCheck.valid) {
+            return interaction.editReply({ content: `❌ ${permissionCheck.issues.join(' ')}` });
+        }
 
         const setupEmbed = new EmbedBuilder()
             .setTitle(config.ticket_embed.title || 'Support Ticket')

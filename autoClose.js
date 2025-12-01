@@ -2,6 +2,7 @@
 const { ChannelType, EmbedBuilder, Colors } = require('discord.js');
 const config = require('./config.json');
 const Logger = require('./logger');
+const ticketCategoryManager = require('./ticketCategoryManager');
 
 const logger = new Logger(config.log_channel_id);
 
@@ -73,12 +74,11 @@ async function checkInactiveTickets(client) {
     const guild = client.guilds.cache.first();
     if (!guild) return;
 
-    const ticketCategoryId = config.ticket_category_id;
     const closedCategoryId = config.closed_ticket_category_id;
 
-    if (!ticketCategoryId || !closedCategoryId) {
-        console.error('❌ ticket_category_id or closed_ticket_category_id not configured in config.json');
-        await logger.error(client, 'Configuration Error', 'ticket_category_id or closed_ticket_category_id not configured', 'autoClose.js');
+    if (!closedCategoryId) {
+        console.error('❌ closed_ticket_category_id not configured in config.json');
+        await logger.error(client, 'Configuration Error', 'closed_ticket_category_id not configured', 'autoClose.js');
         return;
     }
 
@@ -88,8 +88,11 @@ async function checkInactiveTickets(client) {
     const closeMillis = closeDays * 24 * 60 * 60 * 1000;
     const warnMillis = warnDays * 24 * 60 * 60 * 1000;
 
+    // Get all ticket category IDs dynamically
+    const ticketCategoryIds = ticketCategoryManager.getTicketCategoryIds(guild);
+
     const ticketChannels = guild.channels.cache.filter(ch =>
-        (ch.parentId === ticketCategoryId || ch.parentId === closedCategoryId) &&
+        (ticketCategoryIds.includes(ch.parentId) || ch.parentId === closedCategoryId) &&
         ch.type === ChannelType.GuildText
     );
 
